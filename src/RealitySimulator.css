@@ -1,0 +1,42 @@
+/* TruthLayer Reality Simulator — append/import with the simulator App.tsx */
+.simulator-page { max-width: 1500px; margin: 0 auto; }
+.simulator-hero { display:flex; align-items:center; justify-content:space-between; gap:28px; margin-bottom:30px; }
+.simulator-hero h1 { margin:8px 0 12px; font-size:clamp(2.2rem,4vw,3.8rem); line-height:1.03; letter-spacing:-.045em; }
+.simulator-hero h1 em { font-family:Georgia,serif; font-weight:400; }
+.simulator-buddy-visual { position:relative; flex:0 0 220px; width:220px; height:240px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:radial-gradient(ellipse at 50% 70%,rgba(164,106,74,.10),transparent 68%); }
+.simulator-buddy-visual .help-buddy-canvas { width:100%; height:100%; min-height:220px; background:transparent; }
+.simulator-buddy-visual canvas { display:block; width:100% !important; height:100% !important; outline:none; }
+.simulator-layout { display:grid; grid-template-columns:minmax(320px,.9fr) minmax(0,1.1fr); gap:22px; align-items:start; }
+.simulator-controls { min-width:0; }
+.simulator-claim-preview { margin:18px 0; padding:18px; border:1px solid var(--border,#dedbd4); border-radius:12px; background:rgba(120,110,95,.045); }
+.simulator-claim-preview blockquote { margin:12px 0; font-family:Georgia,serif; font-size:1.2rem; line-height:1.45; }
+.simulator-claim-preview p { color:var(--muted,#777); font-size:.82rem; margin:12px 0 0; }
+.simulator-status-row { display:flex; flex-wrap:wrap; gap:8px; }
+.simulator-status-row span { border:1px solid var(--border,#dedbd4); border-radius:20px; padding:5px 9px; font-size:.73rem; }
+.scenario-presets { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 16px; }
+.scenario-preset { border:1px solid var(--border,#dedbd4); border-radius:8px; background:transparent; color:inherit; padding:8px 10px; font:inherit; font-size:.78rem; cursor:pointer; transition:background .15s,border-color .15s; }
+.scenario-preset:hover { background:rgba(164,106,74,.09); border-color:var(--rust,#a96d4f); }
+.simulator-safety-note { display:flex; gap:10px; align-items:flex-start; margin:16px 0; padding:12px; border-radius:9px; background:rgba(83,119,98,.09); color:var(--muted,#62645f); font-size:.8rem; line-height:1.5; }
+.simulator-safety-note svg { flex:0 0 auto; color:#5b8069; }
+.simulation-output { min-width:0; }
+.simulation-empty { min-height:460px; border:1px dashed var(--border,#d8d5ce); border-radius:16px; padding:clamp(24px,4vw,44px); display:flex; flex-direction:column; align-items:flex-start; justify-content:center; background:linear-gradient(145deg,rgba(164,106,74,.055),transparent 65%); }
+.simulation-empty-icon { width:54px; height:54px; display:grid; place-items:center; border-radius:14px; background:rgba(164,106,74,.12); color:var(--rust,#a96d4f); margin-bottom:25px; }
+.simulation-empty h2 { max-width:440px; font-size:clamp(1.7rem,3vw,2.5rem); line-height:1.12; letter-spacing:-.035em; margin:10px 0; }
+.simulation-empty>p:not(.eyebrow) { max-width:480px; color:var(--muted,#777); line-height:1.7; }
+.simulation-empty-steps { display:flex; flex-wrap:wrap; gap:12px; margin-top:26px; font-size:.68rem; letter-spacing:.1em; color:var(--muted,#777); }
+.simulation-empty-steps span+span:before { content:"→"; margin-right:12px; color:var(--rust,#a96d4f); }
+.simulation-results { border:1px solid var(--border,#dedbd4); border-radius:16px; padding:clamp(20px,3vw,32px); background:var(--card,#fff); }
+.simulation-result-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; padding-bottom:22px; border-bottom:1px solid var(--border,#e2dfd8); }
+.simulation-result-heading h2 { margin:7px 0 0; font-size:1.65rem; line-height:1.2; }
+.simulation-badge { flex:0 0 auto; border:1px solid rgba(164,106,74,.4); border-radius:20px; color:var(--rust,#a96d4f); padding:6px 9px; font-size:.64rem; letter-spacing:.08em; }
+.simulation-list-block { padding:20px 0; border-bottom:1px solid var(--border,#e2dfd8); }
+.simulation-list-block h3 { margin:0 0 10px; font-size:1rem; }
+.simulation-list-block ul { margin:0; padding-left:20px; }
+.simulation-list-block li { padding:4px 0; line-height:1.55; color:var(--muted,#656565); }
+.simulation-recommendation { margin-top:20px; padding:17px; border-radius:10px; background:rgba(83,119,98,.09); }
+.simulation-recommendation p { margin:8px 0 0; line-height:1.6; }
+.simulation-limit { margin-top:14px; padding:14px 0; }
+.simulation-limit p { margin:6px 0 0; color:var(--muted,#777); font-size:.86rem; line-height:1.6; }
+@media (max-width:900px) { .simulator-layout { grid-template-columns:1fr; } .simulation-empty { min-height:300px; } }
+@media (max-width:560px) { .simulator-hero { align-items:flex-start; } .simulator-buddy-visual { flex-basis:120px; width:120px; height:155px; margin-top:12px; } .simulator-buddy-visual .help-buddy-canvas { min-height:155px; } .simulation-result-heading { flex-direction:column; } }
+@media print { .simulator-buddy-visual,.scenario-presets,.simulator-controls .primary-button { display:none !important; } .simulator-layout { display:block; } }

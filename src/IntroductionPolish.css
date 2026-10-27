@@ -1,0 +1,33 @@
+/* TruthLayer introduction page: feature discovery and responsive polish */
+.intro-tools-section{margin:28px 0 12px;}
+.intro-tools-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:28px;margin-bottom:16px;}
+.intro-tools-heading h2{font-family:Georgia,"Times New Roman",serif;font-size:clamp(24px,2.2vw,32px);font-weight:500;letter-spacing:-.035em;line-height:1.12;margin:8px 0 0;color:var(--ink,#172d27);}
+.intro-tools-heading>p{max-width:430px;margin:0 0 2px;color:var(--muted,#68766f);font-size:13px;line-height:1.75;}
+.intro-tools-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+.intro-tool-card{position:relative;min-height:294px;overflow:hidden;border:1px solid var(--line,#dedbcf);border-radius:15px;padding:23px 24px 18px;background:rgba(255,255,255,.58);display:flex;flex-direction:column;align-items:flex-start;isolation:isolate;}
+.intro-tool-card:before{content:"";position:absolute;inset:0 0 auto;height:3px;background:#b9c4a0;z-index:-1;}
+.intro-tool-simulator:before{background:#c46d50;}
+.intro-tool-topline{display:flex;align-items:center;gap:11px;margin-bottom:16px;}
+.intro-tool-icon{width:39px;height:39px;display:grid;place-items:center;border-radius:11px;background:#e8eadf;color:#4d705d;}
+.intro-tool-simulator .intro-tool-icon{background:#f0e1d6;color:#ad6347;}
+.intro-tool-kicker{font-size:9px;letter-spacing:.16em;color:#7c8172;font-weight:600;}
+.intro-tool-card h3{font-family:Georgia,"Times New Roman",serif;font-size:clamp(23px,2vw,29px);font-weight:500;letter-spacing:-.035em;line-height:1.15;margin:0 0 9px;color:var(--ink,#172d27);}
+.intro-tool-card>p{position:relative;z-index:1;font-size:12.5px;line-height:1.75;color:var(--muted,#68766f);margin:0 0 15px;max-width:510px;}
+.intro-tool-link{position:relative;z-index:2;display:inline-flex;align-items:center;gap:9px;border:0;background:transparent;padding:6px 0;color:#17372f;font-size:12px;font-weight:650;cursor:pointer;border-bottom:1px solid #aab5a2;transition:gap .18s ease,color .18s ease;}
+.intro-tool-link:hover{gap:13px;color:#b45f45;}
+.intro-tool-link:focus-visible{outline:2px solid #6e8e75;outline-offset:4px;border-radius:2px;}
+.intro-tool-visual{position:absolute;right:17px;bottom:13px;width:48%;height:88px;opacity:.78;pointer-events:none;z-index:0;}
+.graph-mini{background-image:radial-gradient(#c7cdbd .9px,transparent .9px);background-size:13px 13px;border-radius:9px;}
+.graph-mini-node{position:absolute;display:grid;place-items:center;min-height:22px;padding:0 8px;border:1px solid #d7dccd;border-radius:6px;background:#fbfaf5;color:#667663;font-size:7px;letter-spacing:.08em;font-weight:700;white-space:nowrap;}
+.graph-mini-main{left:39%;top:29px;background:#18352d;color:#fff;border-color:#18352d;}
+.graph-mini-a{left:2%;top:7px;}.graph-mini-b{right:0;top:8px;}.graph-mini-c{left:39%;bottom:2px;}
+.graph-mini i{position:absolute;display:block;height:1px;background:#c6cdbb;transform-origin:left center;}
+.graph-mini i:nth-of-type(1){left:22%;top:24px;width:22%;transform:rotate(28deg);}.graph-mini i:nth-of-type(2){left:57%;top:39px;width:25%;transform:rotate(-28deg);}.graph-mini i:nth-of-type(3){left:50%;top:49px;width:30px;transform:rotate(90deg);}
+.simulator-mini{display:flex;align-items:center;justify-content:flex-end;gap:7px;padding-top:18px;color:#7e8477;font-size:7px;letter-spacing:.1em;font-weight:700;white-space:nowrap;}
+.simulator-mini b{font-size:13px;color:#c46d50;font-weight:400;}
+.simulator-mini-highlight{padding:7px 8px;border:1px solid #e1c7b7;border-radius:6px;background:#fbf2ec;color:#ac6247;}
+.simulator-mini-track{position:absolute;left:10%;right:0;bottom:12px;height:1px;background:linear-gradient(90deg,#d6d9ca 0%,#d6d9ca 35%,#c46d50 35%,#c46d50 65%,#d6d9ca 65%);}
+.intro-tools-note{display:flex;align-items:flex-start;gap:8px;margin:13px 0 0;color:var(--muted,#68766f);font-size:10px;line-height:1.6;}
+.intro-tools-note svg{flex-shrink:0;color:#66866c;margin-top:1px;}
+@media(max-width:900px){.intro-tools-heading{align-items:flex-start;flex-direction:column;gap:9px}.intro-tools-heading>p{max-width:620px}.intro-tool-card{padding:20px;min-height:320px}.intro-tool-visual{width:53%;opacity:.58}}
+@media(max-width:640px){.intro-tools-grid{grid-template-columns:1fr}.intro-tool-card{min-height:290px;padding:20px}.intro-tool-visual{width:48%;right:12px}.intro-tool-card>p{max-width:100%;padding-bottom:54px}.intro-tools-note{font-size:10px}}

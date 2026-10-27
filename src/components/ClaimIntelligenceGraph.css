@@ -1,0 +1,84 @@
+ .claim-graph-page{max-width:1500px;margin:0 auto}.graph-page-heading{align-items:flex-end}.claim-graph-workspace{display:flex;flex-direction:column;gap:16px}.claim-graph-toolbar{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding:16px;border:1px solid var(--line,#ded9cc);background:rgba(255,255,255,.55);border-radius:14px}.claim-graph-toolbar label{display:flex;flex-direction:column;gap:7px;min-width:220px;flex:1;color:var(--ink,#17302b);font-size:12px;font-weight:650}.claim-graph-toolbar select{min-height:42px;padding:0 12px;border:1px solid var(--line,#ded9cc);border-radius:8px;background:#fbf9f2;color:#17302b;font:inherit}.graph-summary{display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:0 4px 10px;color:#69756e;font-size:12px}.graph-summary b{color:#17302b;font-size:16px}.claim-graph-main{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}.claim-graph-stage,.graph-inspector{border:1px solid var(--line,#ded9cc);background:#fbfaf5;border-radius:15px;overflow:hidden}.claim-graph-stage{padding:18px}.graph-stage-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.graph-live-dot{font-size:9px;letter-spacing:.12em;color:#64766c}.graph-live-dot:before{content:"";display:inline-block;width:6px;height:6px;margin-right:7px;border-radius:50%;background:#6b9a78}.graph-canvas{position:relative;height:570px;margin-top:12px;border:1px solid #e7e2d7;border-radius:12px;overflow:hidden;background-color:#f8f6ee;background-image:radial-gradient(#d9d7ca .8px,transparent .8px);background-size:18px 18px}.graph-edges{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.graph-edge-line{stroke:#a9b0a4;stroke-width:.32;stroke-dasharray:1.1 1.1;opacity:.85;vector-effect:non-scaling-stroke}.graph-edge-line.supports{stroke:#669777}.graph-edge-line.contradicts{stroke:#bd6b58}.graph-edge-line.context{stroke:#b29b65}.graph-node{position:absolute;z-index:2;transform:translate(-5%,-10%);width:clamp(105px,14%,155px);min-height:77px;display:flex;flex-direction:column;align-items:flex-start;gap:5px;padding:10px 11px;text-align:left;border:1px solid #d8d7cc;border-radius:10px;background:#fffdf8;color:#1b302b;box-shadow:0 5px 16px #23352b0b;cursor:pointer;transition:transform .16s,border-color .16s,box-shadow .16s}.graph-node:hover{transform:translate(-5%,-10%) translateY(-2px);box-shadow:0 8px 18px #23352b16}.graph-node-selected{border-color:#19352d;box-shadow:0 0 0 2px #19352d18,0 8px 18px #23352b12}.graph-node-icon{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;background:#e8e9dd;color:#536f5d}.graph-node-label{font-size:11px;line-height:1.25;font-weight:750;max-width:100%;overflow-wrap:anywhere}.graph-node-status{font-size:9px;line-height:1.3;color:#6c756e;max-width:100%;overflow-wrap:anywhere}.graph-node-claim{left:43%!important;top:45%!important;width:175px;min-height:108px;background:#18312b;color:#fffdf6;border-color:#18312b;transform:translate(-5%,-10%);box-shadow:0 10px 28px #18312b20}.graph-node-claim .graph-node-icon{background:#354b3f;color:#e3e4c5}.graph-node-claim .graph-node-status{color:#d4ded6}.graph-node-claim.graph-node-selected{box-shadow:0 0 0 3px #9cae8b,0 10px 28px #18312b20}.graph-node-positive .graph-node-icon,.legend-dot.positive{background:#dceade;color:#447c53}.graph-node-negative .graph-node-icon,.legend-dot.negative{background:#f2dfd8;color:#a95845}.graph-node-context .graph-node-icon,.legend-dot.context{background:#eee7d3;color:#8a7540}.graph-node-unresolved .graph-node-icon,.legend-dot.unresolved{background:#e8e8dc;color:#777c62}.graph-node-evidence{width:clamp(105px,14%,145px)}.graph-node-decision{left:43%!important}.graph-empty-hint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;align-items:center;gap:7px;width:max-content;max-width:90%;padding:8px 11px;border:1px solid #e3d6bd;border-radius:8px;background:#fff9ed;color:#7c6744;font-size:11px}.graph-legend{display:flex;gap:13px;flex-wrap:wrap;margin-top:15px;color:#68736c;font-size:10px}.graph-legend span{display:flex;align-items:center;gap:6px}.legend-dot{width:8px;height:8px;display:inline-block;border-radius:50%}.graph-disclaimer{margin:13px 0 0;color:#7a817b;font-size:10px;line-height:1.6}.graph-inspector{padding:20px;position:sticky;top:18px;background:#fffefa}.graph-inspector-icon{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:#e9eadf;color:#4e705a;margin-bottom:18px}.graph-inspector .eyebrow{margin-bottom:10px}.graph-kind-pill{display:inline-flex;margin:3px 0 8px;padding:5px 8px;border-radius:100px;background:#ecece4;color:#5e6a60;font-size:10px}.graph-kind-pill.positive{background:#e2efe3;color:#46764f}.graph-kind-pill.negative{background:#f7e5df;color:#9f5947}.graph-kind-pill.unresolved{background:#edeee4;color:#74795e}.graph-kind-pill.context{background:#f2ecd9;color:#8a7540}.graph-inspector h2{font-family:Georgia,serif;font-size:25px;line-height:1.18;font-weight:500;margin:3px 0 8px;overflow-wrap:anywhere}.graph-inspector-status{font-size:12px;font-weight:700;color:#536b5b}.graph-detail-text{margin-top:16px;padding-top:14px;border-top:1px solid #e9e5dc;color:#5e6b64;font-size:12px;line-height:1.65;overflow-wrap:anywhere}.graph-detail-text p{margin:0 0 9px;white-space:pre-wrap}.graph-source-link{display:inline-block;margin-top:6px;color:#8f543c;font-size:12px;text-decoration:none}.graph-source-link:hover{text-decoration:underline}.graph-inspector-note{display:flex;gap:9px;margin-top:20px;padding:12px;border-radius:9px;background:#edf1eb;color:#5e7565}.graph-inspector-note svg{flex:0 0 auto;margin-top:2px}.graph-inspector-note p{margin:0;font-size:10px;line-height:1.6}.graph-empty{padding:50px 25px;text-align:center;border:1px dashed #d6d5c9;border-radius:15px;color:#68736c}.graph-empty svg{color:#6b8b71}.graph-empty h2{font-family:Georgia,serif;color:#18312b;font-size:28px;font-weight:500}.graph-empty p{font-size:13px}@media(max-width:1050px){.claim-graph-main{grid-template-columns:1fr}.graph-inspector{position:static}.graph-canvas{height:520px}}@media(max-width:650px){.claim-graph-stage{padding:10px}.graph-canvas{height:620px}.graph-node{width:112px;padding:8px;min-height:70px}.graph-node-claim{width:145px;min-height:96px}.graph-legend{gap:8px}.graph-legend span{font-size:9px}.graph-summary{width:100%}.claim-graph-toolbar label{min-width:100%}.graph-empty-hint{font-size:9px}}
+
+ /* Graph layout fix: keep cards separated and predictable */
+.graph-node {
+  box-sizing: border-box;
+  height: 112px;
+  min-height: 112px;
+  max-height: 112px;
+  overflow: hidden;
+  transform: translate(0, -10%);
+}
+
+.graph-node:hover {
+  transform: translate(0, -10%) translateY(-2px);
+}
+
+.graph-node-selected {
+  z-index: 5;
+}
+
+.graph-node-label {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.graph-node-status {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+/* Preserve the central claim card's existing styling */
+.graph-node-claim {
+  height: 108px;
+  min-height: 108px;
+  max-height: 108px;
+  transform: translate(-5%, -10%);
+}
+
+.graph-node-claim:hover {
+  transform: translate(-5%, -10%) translateY(-2px);
+}
+
+@media (max-width: 650px) {
+  .graph-node {
+    height: 100px;
+    min-height: 100px;
+    max-height: 100px;
+  }
+
+  .graph-node-claim {
+    height: 96px;
+    min-height: 96px;
+    max-height: 96px;
+  }
+}
+
+
+/* Improve relationship-line visibility */
+.graph-edge-line {
+  stroke: #87958a;
+  stroke-width: 0.5;
+  stroke-dasharray: 1.2 0.8;
+  opacity: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Make important relationship lines stand out slightly */
+.graph-edges line {
+  filter: drop-shadow(0 0 0.4px rgba(35, 53, 43, 0.25));
+}
+
+/* Keep the selected node visually prominent */
+.graph-node-selected {
+  border-color: #19352d;
+  box-shadow:
+    0 0 0 2px rgba(25, 53, 45, 0.18),
+    0 8px 18px rgba(35, 53, 43, 0.12);
+}
