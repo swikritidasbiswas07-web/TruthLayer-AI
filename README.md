@@ -24,6 +24,4 @@ Copy your GLB to `public/models/help-buddy.glb`. Keep that exact filename. Until
 - Browser-local persistence, responsive layout, and warm cream / forest / sage / olive / rust palette
 
 ## Honest limitations
-This is a local prototype. It does not yet call Gemini or another AI model, independently fetch or validate source URLs, or automatically verify claims. User-entered evidence is marked unverified. Records are stored in the current browser only, not shared across devices. Add a backend, secure server-side API key handling, evidence retrieval and model-based analysis before presenting this as an automated verification system.
-
-Palette: paper `#F4F0E6`, forest `#172B27`, sage `#E4E5D5`, olive `#C6D46B`, rust `#C45B42`.
+TruthLayer AI uses Gemini for AI-assisted claim analysis through its backend. Evidence entered by users is assessed using the information available to the system; source URLs are not independently fetched and validated automatically. AI-generated assessments may contain errors and do not constitute legal advice or definitive proof of compliance. Investigation records are stored in the current browser and are not synchronised across devices. Human review is required before making compliance decisions.
