@@ -1,0 +1,218 @@
+[
+  {
+    "id": "recycled_absolute",
+    "claim": "Our packaging is made from 100% recycled materials.",
+    "category": "Environment",
+    "expected_review_focus": "absolute_claim",
+    "example_evidence_request": "Request supplier material composition and certification.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "carbon_delivery",
+    "claim": "Every delivery we make is carbon neutral.",
+    "category": "Climate",
+    "expected_review_focus": "boundary_uncertainty",
+    "example_evidence_request": "Request lifecycle boundary and offset records.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "ethically_sourced",
+    "claim": "All our ingredients are ethically sourced.",
+    "category": "Sourcing",
+    "expected_review_focus": "ambiguous_definition",
+    "example_evidence_request": "Request supplier audits and a definition of ethical.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "ai_support",
+    "claim": "100% of customer support conversations are handled by AI with no human involvement.",
+    "category": "Other",
+    "expected_review_focus": "absolute_claim",
+    "example_evidence_request": "Request escalation logs and intervention rates.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "watch_neutral",
+    "claim": "Selected Apple Watch Series 9 configurations are carbon neutral.",
+    "category": "Environment",
+    "expected_review_focus": "scope_specificity",
+    "example_evidence_request": "Verify model and band configuration.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "diesel_claim",
+    "claim": "The affected diesel vehicles meet emissions requirements in normal driving.",
+    "category": "Environment",
+    "expected_review_focus": "external_evidence_needed",
+    "example_evidence_request": "Request regulator documents and precise model years.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "biodegradable",
+    "claim": "Our new pouch is completely biodegradable.",
+    "category": "Packaging",
+    "expected_review_focus": "ambiguous_definition",
+    "example_evidence_request": "Request breakdown conditions and test standards.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "no_emissions",
+    "claim": "Our production process generates zero emissions.",
+    "category": "Climate",
+    "expected_review_focus": "absolute_claim",
+    "example_evidence_request": "Request measured scopes and process inventories.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "water_savings",
+    "claim": "Our process uses 35 percent less water than our previous process.",
+    "category": "Environment",
+    "expected_review_focus": "comparative_claim",
+    "example_evidence_request": "Request baseline period and metering methodology.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "faster",
+    "claim": "Our battery charges twice as fast as competing products.",
+    "category": "Product performance",
+    "expected_review_focus": "comparative_claim",
+    "example_evidence_request": "Request matched benchmark methodology.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "medical_like",
+    "claim": "Our herbal drink prevents all colds.",
+    "category": "Product performance",
+    "expected_review_focus": "absolute_claim",
+    "example_evidence_request": "Request controlled studies and medical review.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "fair_wages",
+    "claim": "Every person in our supply chain receives a living wage.",
+    "category": "Sourcing",
+    "expected_review_focus": "absolute_claim",
+    "example_evidence_request": "Request wage records and supplier coverage.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "pilot",
+    "claim": "Users in a pilot reported higher satisfaction.",
+    "category": "Social impact",
+    "expected_review_focus": "limited_scope",
+    "example_evidence_request": "Request sample size and study design.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "percentage",
+    "claim": "81% of survey participants preferred the new design.",
+    "category": "Product performance",
+    "expected_review_focus": "statistical_claim",
+    "example_evidence_request": "Request survey methodology and sample.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "renewable",
+    "claim": "Our offices run on 100% renewable electricity.",
+    "category": "Climate",
+    "expected_review_focus": "absolute_claim",
+    "example_evidence_request": "Request utility statements and certificate matching.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "plastic_free",
+    "claim": "Our bottle is plastic-free.",
+    "category": "Packaging",
+    "expected_review_focus": "materials_scope",
+    "example_evidence_request": "Request cap and liner composition.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "supplier_claim",
+    "claim": "We have audited every supplier this year.",
+    "category": "Sourcing",
+    "expected_review_focus": "absolute_claim",
+    "example_evidence_request": "Request audit register and supplier inventory.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "net_zero",
+    "claim": "Our company will reach net zero emissions by 2030.",
+    "category": "Climate",
+    "expected_review_focus": "future_commitment",
+    "example_evidence_request": "Request transition plan and scope definitions.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "ai_accuracy",
+    "claim": "Our AI tool is 99.9 percent accurate.",
+    "category": "Product performance",
+    "expected_review_focus": "metric_definition",
+    "example_evidence_request": "Request test set, metric, and confidence intervals.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "privacy",
+    "claim": "Our platform never stores customer data.",
+    "category": "Other",
+    "expected_review_focus": "absolute_claim",
+    "example_evidence_request": "Request data flow mapping and retention policy.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "donation",
+    "claim": "Ten percent of profits are donated to education.",
+    "category": "Social impact",
+    "expected_review_focus": "financial_definition",
+    "example_evidence_request": "Request accounting definition and donation receipts.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "reusability",
+    "claim": "The container can be reused 50 times.",
+    "category": "Packaging",
+    "expected_review_focus": "test_condition",
+    "example_evidence_request": "Request durability test protocol.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "recycled_part",
+    "claim": "The bottle contains some post-consumer recycled resin.",
+    "category": "Packaging",
+    "expected_review_focus": "limited_scope",
+    "example_evidence_request": "Request composition evidence without inferring percentage.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  },
+  {
+    "id": "local",
+    "claim": "All of our produce is locally sourced.",
+    "category": "Sourcing",
+    "expected_review_focus": "ambiguous_definition",
+    "example_evidence_request": "Request distance definition and procurement records.",
+    "reference_verdict": "not_assigned",
+    "dataset_kind": "hand_authored_scenarios"
+  }
+]

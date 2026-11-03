@@ -2,6 +2,9 @@
 import logging
 from pathlib import Path
 
+from evidence_retrieval import router as evidence_router
+
+
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -39,6 +42,9 @@ app.add_middleware(
 )
 
 MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
+
+app.include_router(evidence_router)
+
 
 
 class ClaimRequest(BaseModel):

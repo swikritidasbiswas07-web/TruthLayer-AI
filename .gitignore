@@ -10,6 +10,9 @@ dist/
 !.env.example
 !.env.sample
 
+.env.local
+.env.*.local
+
 # Python environment and cache
 .venv/
 venv/
@@ -21,3 +24,16 @@ __pycache__/
 
 # Local files
 .DS_Store
+
+
+# Editor and local logs
+.vscode/
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+
+# Local backups
+*.backup
+*.bak

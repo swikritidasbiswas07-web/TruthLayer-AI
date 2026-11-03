@@ -1,16 +1,19 @@
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
   Activity, ArrowLeft, ArrowRight, ArrowUpRight, BadgeCheck,
   BookOpen, Check, ChevronDown, CircleHelp, FileSearch, FileText,
   Filter, FlaskConical, FolderOpen, Gauge, Leaf, Menu, Plus,
   Search, ShieldCheck, Share2, Sparkles, X
 } from "lucide-react";
+import type { User } from "@supabase/supabase-js";
+import { supabase } from "./lib/supabase";
 import OnboardingGuide from "./components/OnboardingGuide";
 import HelpBuddy3D from "./components/HelpBuddy3D";
 import ClaimIntelligenceGraph from "./components/ClaimIntelligenceGraph";
 import "./RealitySimulator.css";
 import "./IntroductionPolish.css";
+import "./TruthLayerAuth.css";
 
 type Status = "Draft" | "Needs evidence" | "In review" | "Reviewed";
 type Evidence = {
@@ -22,6 +25,15 @@ type Evidence = {
   publisher?: string;
   publicationDate?: string;
   excerpt?: string;
+  provenance?: {
+    retrievedUrl: string;
+    retrievedAt: string;
+    retrievalStatus: string;
+    selectedPassage: string;
+    keywordOverlap: number | null;
+    verificationNote: string;
+  };
+  qualityFlags?: string[];
 };
 type PermissionStatus =
   | "Not assessed"
@@ -64,6 +76,17 @@ type AIAnalysis = {
   evidence_gaps: string[];
   recommended_next_steps: string[];
   uncertainty_note: string;
+};
+
+type RetrievedSource = {
+  url: string;
+  title: string;
+  publisher: string;
+  publication_date: string | null;
+  retrieved_at: string;
+  passages: { text: string; relevance_score: number }[];
+  retrieval_status: string;
+  verification_note: string;
 };
 
 type SimulationResult = {
@@ -163,6 +186,45 @@ function makeId() {
   return `TL-${String(Date.now()).slice(-6)}`;
 }
 
+// Quality indicators are review prompts, never automatic fact-checking.
+function evidenceQualityFlags(
+  evidence: Evidence,
+  existing: Evidence[] = [],
+): string[] {
+  const flags: string[] = [];
+  if (!evidence.url) flags.push("No source URL recorded");
+  if (!evidence.publicationDate) {
+    flags.push("Publication date unavailable — freshness cannot be assessed");
+  } else {
+    const parsed = new Date(`${evidence.publicationDate}T00:00:00Z`);
+    if (!Number.isNaN(parsed.getTime())) {
+      const ageYears = (Date.now() - parsed.getTime()) / (365.25 * 24 * 3600 * 1000);
+      if (ageYears > 3) flags.push("Published over 3 years ago — check whether still current");
+      if (ageYears < -0.01) flags.push("Publication date is in the future — check metadata");
+    } else {
+      flags.push("Publication date could not be parsed");
+    }
+  }
+  if (!evidence.provenance) {
+    flags.push("Manually entered source — automated retrieval provenance unavailable");
+  } else if (
+    evidence.provenance.keywordOverlap !== null &&
+    evidence.provenance.keywordOverlap < 0.15
+  ) {
+    flags.push("Low keyword overlap with the claim — review relevance");
+  }
+  if (!evidence.excerpt) flags.push("No supporting passage recorded");
+  if (existing.some(item =>
+    item.id !== evidence.id &&
+    item.stance !== "Context" &&
+    evidence.stance !== "Context" &&
+    item.stance !== evidence.stance
+  )) {
+    flags.push("Register contains opposing reviewer classifications — inspect both sources");
+  }
+  return flags;
+}
+
 const analysisSections: {
   key: keyof Pick<
     AIAnalysis,
@@ -185,7 +247,14 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(
     () => !localStorage.getItem("truthlayer-onboarding-done")
   );
-  const [records, setRecords] = useState<RecordItem[]>(loadRecords);
+  // Cloud data is isolated by Supabase Auth and PostgreSQL RLS.
+  const [records, setRecords] = useState<RecordItem[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [authChecking, setAuthChecking] = useState(true);
+  const [cloudReady, setCloudReady] = useState(false);
+  const [cloudState, setCloudState] = useState("Not connected");
+  const [importBusy, setImportBusy] = useState(false);
+  const cloudLoadedUser = useRef<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [view, setView] = useState<View>("dashboard");
   const [search, setSearch] = useState("");
@@ -204,6 +273,10 @@ export default function App() {
   const [ePublicationDate, setEPublicationDate] = useState("");
   const [eExcerpt, setEExcerpt] = useState("");
   const [eStance, setEStance] = useState<Evidence["stance"]>("Supports");
+  const [retrievalLoading, setRetrievalLoading] = useState(false);
+  const [retrievalError, setRetrievalError] = useState("");
+  const [retrievedSource, setRetrievedSource] = useState<RetrievedSource | null>(null);
+
 
   const [reviewDecision, setReviewDecision] = useState("");
   const [interview, setInterview] = useState({
@@ -239,13 +312,88 @@ export default function App() {
   const [simulationError, setSimulationError] = useState("");
   const [simulationRecordId, setSimulationRecordId] = useState<string>("");
 
+  // Auth state is resolved before displaying any account-specific data.
   useEffect(() => {
-    try {
-      localStorage.setItem("truthlayer-round2-records", JSON.stringify(records));
-    } catch {
-      setNotice("Browser storage is unavailable. Changes may not persist.");
+    let mounted = true;
+    supabase.auth.getUser().then(({ data, error }) => {
+      if (!mounted) return;
+      if (error) setCloudState(`Authentication: ${error.message}`);
+      setUser(data.user ?? null);
+      setAuthChecking(false);
+    }).catch((error: unknown) => {
+      if (!mounted) return;
+      setCloudState(error instanceof Error ? error.message : "Could not check login");
+      setAuthChecking(false);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      setUser(session?.user ?? null);
+    });
+    return () => { mounted = false; subscription.unsubscribe(); };
+  }, []);
+
+  // Fetch only the signed-in user's records. Never merge local data silently.
+  useEffect(() => {
+    let cancelled = false;
+    cloudLoadedUser.current = null;
+    setCloudReady(false);
+    setRecords([]);
+    setActiveId(null);
+    if (!user) { setCloudState("Signed out"); return; }
+    setCloudState("Loading investigations...");
+    const load = async () => {
+      const { data, error } = await supabase.from("investigations")
+        .select("id,payload").eq("user_id", user.id).order("updated_at", { ascending: false });
+      if (cancelled) return;
+      if (error) { setCloudState(`Load failed: ${error.message}`); return; }
+      const cloudRecords = (data ?? []).map(row => row.payload as RecordItem)
+        .filter((record): record is RecordItem => Boolean(record && typeof record.id === "string" && Array.isArray(record.evidence)));
+      setRecords(cloudRecords);
+      cloudLoadedUser.current = user.id;
+      setCloudReady(true);
+      setCloudState("Cloud synced");
+    };
+    void load();
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
+  // Debounced upsert: saves new and edited records, without deleting other rows.
+  useEffect(() => {
+    if (!user || !cloudReady || cloudLoadedUser.current !== user.id || records.length === 0) return;
+    const userId = user.id;
+    const timer = window.setTimeout(async () => {
+      setCloudState("Saving...");
+      const { error } = await supabase.from("investigations").upsert(
+        records.map(record => ({ id: record.id, user_id: userId, payload: record, updated_at: new Date().toISOString() })),
+        { onConflict: "user_id,id" }
+      );
+      if (cloudLoadedUser.current !== userId) return;
+      setCloudState(error ? `Save failed: ${error.message}` : "Cloud synced");
+    }, 850);
+    return () => window.clearTimeout(timer);
+  }, [records, cloudReady, user?.id]);
+
+  const importBrowserRecords = async () => {
+    if (!user || !cloudReady) return;
+    const legacy = loadRecords();
+    // Import only explicitly stored records, not the sample seed.
+    if (!localStorage.getItem("truthlayer-round2-records")) {
+      setNotice("No earlier browser investigations were found on this device.");
+      return;
     }
-  }, [records]);
+    const missing = legacy.filter(item => !records.some(existing => existing.id === item.id));
+    if (!missing.length) { setNotice("All browser investigations are already in this account, or have matching IDs."); return; }
+    if (!window.confirm(`Import ${missing.length} browser investigation(s) into ${user.email ?? "this account"}? This will not remove the browser backup.`)) return;
+    setImportBusy(true);
+    const { error } = await supabase.from("investigations").upsert(
+      missing.map(record => ({ id: record.id, user_id: user.id, payload: record, updated_at: new Date().toISOString() })),
+      { onConflict: "user_id,id", ignoreDuplicates: true }
+    );
+    setImportBusy(false);
+    if (error) { setNotice(`Import failed: ${error.message}`); return; }
+    setRecords(all => [...missing, ...all]);
+    setNotice(`Imported ${missing.length} investigation(s). Your original browser backup remains untouched.`);
+  };
 
   const active = records.find((record) => record.id === activeId) ?? null;
 
@@ -333,6 +481,42 @@ export default function App() {
     nav("report");
   };
 
+  const retrieveSource = async () => {
+    if (!active) return;
+    const sourceUrl = eUrl.trim();
+    if (!sourceUrl) {
+      setRetrievalError("Enter a public source URL first.");
+      return;
+    }
+    setRetrievalLoading(true);
+    setRetrievalError("");
+    setRetrievedSource(null);
+    try {
+      const response = await fetch(`${API_BASE}/api/evidence/retrieve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: sourceUrl, claim: active.claim })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(typeof data.detail === "string" ? data.detail : `Retrieval failed (HTTP ${response.status}).`);
+      }
+      const result = data as RetrievedSource;
+      setRetrievedSource(result);
+      setEUrl(result.url);
+      setETitle(result.title);
+      setEPublisher(result.publisher);
+      setEPublicationDate(/^\d{4}-\d{2}-\d{2}$/.test(result.publication_date?.slice(0, 10) ?? "") ? result.publication_date!.slice(0, 10) : "");
+      setEExcerpt(result.passages[0]?.text ?? "");
+      setEStance("Context");
+      setNotice("Source retrieved. Review the excerpt and relationship before adding evidence.");
+    } catch (error) {
+      setRetrievalError(error instanceof Error ? error.message : "Could not retrieve the source.");
+    } finally {
+      setRetrievalLoading(false);
+    }
+  };
+
   const addEvidence = () => {
     if (!active) return;
 
@@ -349,8 +533,19 @@ export default function App() {
       stance: eStance,
       publisher: ePublisher.trim() || undefined,
       publicationDate: ePublicationDate || undefined,
-      excerpt: eExcerpt.trim() || undefined
+      excerpt: eExcerpt.trim() || undefined,
+      provenance: retrievedSource && eUrl.trim() === retrievedSource.url ? {
+        retrievedUrl: retrievedSource.url,
+        retrievedAt: retrievedSource.retrieved_at,
+        retrievalStatus: retrievedSource.retrieval_status,
+        selectedPassage: eExcerpt.trim(),
+        keywordOverlap: retrievedSource.passages.find(
+          passage => passage.text === eExcerpt.trim()
+        )?.relevance_score ?? null,
+        verificationNote: retrievedSource.verification_note,
+      } : undefined,
     };
+    evidence.qualityFlags = evidenceQualityFlags(evidence, active.evidence);
 
     update({
       evidence: [...active.evidence, evidence],
@@ -364,6 +559,8 @@ export default function App() {
     setEPublicationDate("");
     setEExcerpt("");
     setEStance("Supports");
+    setRetrievedSource(null);
+    setRetrievalError("");
     setNotice("Evidence item added. Source details have not been independently verified.");
   };
 
@@ -466,9 +663,10 @@ export default function App() {
     }
   };
 
-  if (showOnboarding) {
-    return <OnboardingGuide onComplete={finish} />;
-  }
+  if (authChecking) return <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: "#111820", color: "#fff" }}>Connecting to TruthLayer...</div>;
+  if (!user) return <TruthLayerAuth />;
+  if (!cloudReady) return <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: "#111820", color: "#fff", padding: 24, textAlign: "center" }}><div><h2>TruthLayer cloud workspace</h2><p>{cloudState}</p><button onClick={() => void supabase.auth.signOut()}>Sign out</button></div></div>;
+  if (showOnboarding) return <OnboardingGuide onComplete={finish} />;
 
   const needs = records.filter((r) => r.status === "Needs evidence").length;
   const inReview = records.filter((r) => r.status === "In review").length;
@@ -520,13 +718,19 @@ export default function App() {
         <div className="sidebar-bottom">
           <div className="privacy-note">
             <span className="online-dot" />
-            LOCAL PROTOTYPE
-            <p>Records are saved in this browser. AI claim analysis is connected to the backend.</p>
+            SECURE CLOUD WORKSPACE
+            <p>Investigations sync to Supabase for your signed-in account. {cloudState}</p>
           </div>
+          <button className="nav-link" onClick={() => void importBrowserRecords()} disabled={importBusy}>
+            <FolderOpen size={17} /> {importBusy ? "Importing..." : "Import earlier browser records"}
+          </button>
+          <button className="nav-link" onClick={() => void supabase.auth.signOut()}>
+            <ShieldCheck size={17} /> Sign out
+          </button>
           <button className="nav-link" onClick={() => setShowOnboarding(true)}>
             <CircleHelp size={17} /> Replay introduction
           </button>
-          <div className="sidebar-footer">TRUTHLAYER / ROUND 02</div>
+          <div className="sidebar-footer">TRUTHLAYER / ROUND 03</div>
         </div>
       </aside>
 
@@ -544,6 +748,7 @@ export default function App() {
           </div>
           <div className="topbar-right">
             <span className="topbar-status"><span className="online-dot" /> EVIDENCE FIRST</span>
+            <span title={user.email ?? "Signed in"} style={{ fontSize: 12, maxWidth: 190, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</span>
             <div className="user-mark">TL</div>
           </div>
         </header>
@@ -1131,7 +1336,21 @@ export default function App() {
                               </blockquote>
                             )}
                             {e.note && <p>{e.note}</p>}
-                            <span className="unverified-note">User supplied · not independently validated</span>
+                            {e.provenance && (
+                              <div className="muted-copy">
+                                <strong>Retrieval provenance</strong>
+                                <p>Retrieved: {new Date(e.provenance.retrievedAt).toLocaleString()}</p>
+                                <p>Source URL at retrieval: <a href={e.provenance.retrievedUrl} target="_blank" rel="noreferrer">{e.provenance.retrievedUrl}</a></p>
+                                <p>Status: {e.provenance.retrievalStatus} · Passage keyword overlap: {e.provenance.keywordOverlap === null ? "Not scored" : `${Math.round(e.provenance.keywordOverlap * 100)}%`}</p>
+                              </div>
+                            )}
+                            {evidenceQualityFlags(e, active.evidence).length > 0 && (
+                              <div className="unverified-note">
+                                <strong>Quality review flags (not factual verdicts)</strong>
+                                <ul>{evidenceQualityFlags(e, active.evidence).map(flag => <li key={flag}>{flag}</li>)}</ul>
+                              </div>
+                            )}
+                            <span className="unverified-note">Reviewer recorded · not independently fact-checked</span>
                           </article>
                         ))}
                       </div>
@@ -1152,8 +1371,35 @@ export default function App() {
                       </label>
                       <label>
                         Source URL
-                        <input type="url" value={eUrl} onChange={(e) => setEUrl(e.target.value)} placeholder="https://..." />
+                        <input type="url" value={eUrl} onChange={(e) => { setEUrl(e.target.value); setRetrievedSource(null); setRetrievalError(""); }} placeholder="https://..." />
                       </label>
+                      <button type="button" className="primary-button" onClick={retrieveSource} disabled={retrievalLoading || !eUrl.trim()}>
+                        <FileSearch size={16} /> {retrievalLoading ? "Retrieving source..." : "Retrieve source"}
+                      </button>
+                      {retrievalError && <p role="alert" className="unverified-note">Retrieval error: {retrievalError}</p>}
+                      {retrievedSource && (
+                        <div className="evidence-item" aria-live="polite">
+                          <strong>Source retrieved — review before saving</strong>
+                          <p>{retrievedSource.title}</p>
+                          <p className="muted-copy">Publisher: {retrievedSource.publisher}</p>
+                          <p className="muted-copy">Retrieved: {new Date(retrievedSource.retrieved_at).toLocaleString()}</p>
+                          <p className="muted-copy">Passages found: {retrievedSource.passages.length}</p>
+                          {retrievedSource.passages.length > 0 && (
+                            <label>
+                              Choose extracted passage
+                              <select value={retrievedSource.passages.some(p => p.text === eExcerpt) ? eExcerpt : ""} onChange={(e) => setEExcerpt(e.target.value)}>
+                                <option value="">Select a passage</option>
+                                {retrievedSource.passages.map((passage, index) => (
+                                  <option key={index} value={passage.text}>Passage {index + 1} — keyword overlap {Math.round(passage.relevance_score * 100)}%</option>
+                                ))}
+                              </select>
+                            </label>
+                          )}
+                          <p className="unverified-note">{retrievedSource.verification_note}</p>
+                          {!retrievedSource.publication_date && <p className="unverified-note">Quality flag: Publication date unavailable — freshness cannot be assessed.</p>}
+                          {retrievedSource.passages[0] && retrievedSource.passages[0].relevance_score < 0.15 && <p className="unverified-note">Quality flag: Low keyword overlap — review relevance before saving.</p>}
+                        </div>
+                      )}
                       <label>
                         Relevant excerpt
                         <textarea rows={3} value={eExcerpt} onChange={(e) => setEExcerpt(e.target.value)} placeholder="Paste the exact passage or result relevant to the claim..." />
@@ -1227,7 +1473,7 @@ export default function App() {
                     <strong>Integrity note</strong>
                     <p>
                       Gemini provides preliminary claim analysis. Evidence is user-supplied;
-                      automated source retrieval and citation validation are not connected.
+                      source retrieval is available for HTML pages, but source authenticity and citation validation are not automated.
                       Human review is required.
                     </p>
                   </div>
@@ -1243,7 +1489,7 @@ export default function App() {
           {!["report", "court", "directions", "branddna", "interview"].includes(view) && (
             <footer className="page-footer">
               <span>TRUTHLAYER AI / EVIDENCE BEFORE ASSERTION</span>
-              <span>ROUND 02 BUILD · LOCAL PROTOTYPE</span>
+              <span>ROUND 03 BUILD · CLOUD-CONNECTED PROTOTYPE</span>
             </footer>
           )}
         </div>
@@ -1329,4 +1575,116 @@ function InvestigationTable({
 
 function Back({ onClick }: { onClick: () => void }) {
   return <button className="back-link" onClick={onClick}><ArrowLeft size={15} /> Back to workspace</button>;
+}
+
+
+// Public, low-privilege demonstration credentials. Never reuse for email or private accounts.
+const DEMO_EMAIL = "truthlayer.demo2026@gmail.com";
+const DEMO_PASSWORD = "TruthLayer_Demo26";
+
+// Email/password authentication uses Supabase Auth; only public demo credentials are embedded.
+function TruthLayerAuth() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setBusy(true);
+    setMessage("");
+    try {
+      const { error, data } = mode === "signup"
+        ? await supabase.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: window.location.origin } })
+        : await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (error) throw error;
+      if (mode === "signup" && !data.session) setMessage("Check your email to confirm your account, then sign in.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Authentication failed.");
+    } finally { setBusy(false); }
+  };
+  const enterDemo = async () => {
+    if (busy) return;
+    setBusy(true);
+    setMessage("");
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: DEMO_EMAIL,
+        password: DEMO_PASSWORD,
+      });
+      if (error) throw error;
+      // App's existing onAuthStateChange listener loads only the demo user's cloud records.
+    } catch (error) {
+      setMessage(error instanceof Error ? `Demo login failed: ${error.message}` : "Demo login failed. Try signing in manually.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <main className="tl-auth-page">
+      <div className="tl-auth-glow tl-auth-glow-one" aria-hidden="true" />
+      <div className="tl-auth-glow tl-auth-glow-two" aria-hidden="true" />
+      <div className="tl-auth-layout">
+        <section className="tl-auth-story">
+          <div className="tl-auth-logo"><span className="tl-auth-mark">T<span>.</span></span> TRUTHLAYER <em>AI</em></div>
+          <div className="tl-auth-story-body">
+            <div className="tl-auth-eyebrow"><span className="tl-auth-live-dot" /> EVIDENCE-FIRST INTELLIGENCE PLATFORM</div>
+            <h1>Truth begins<br />with <i>questions.</i></h1>
+            <p>Investigate claims. Trace the evidence. Make decisions you can defend.</p>
+            <div className="tl-auth-feature-list">
+              <div><FileSearch size={18} /><span>Evidence retrieval & provenance</span></div>
+              <div><ShieldCheck size={18} /><span>Private, persistent investigations</span></div>
+              <div><Activity size={18} /><span>Human-led governance decisions</span></div>
+            </div>
+          </div>
+          <div className="tl-auth-story-footer"><span>TRUTHLAYER / CODEX 48</span><span>RESEARCH WITH ACCOUNTABILITY</span></div>
+        </section>
+        <section className="tl-auth-form-panel">
+          <div className="tl-auth-form-top"><span className="tl-auth-pill"><span className="tl-auth-live-dot" /> SECURE WORKSPACE</span><span className="tl-auth-form-id">01 / ACCESS</span></div>
+          <div className="tl-auth-form-content">
+            <div className="tl-auth-small-title">WELCOME TO TRUTHLAYER</div>
+            <h2>{mode === "login" ? "Welcome back." : "Create your account."}</h2>
+            <p className="tl-auth-subtitle">{mode === "login" ? "Sign in to continue your investigations." : "Start building an evidence-led workspace."}</p>
+            <form onSubmit={submit} className="tl-auth-form">
+              <label htmlFor="tl-email">Email address</label>
+              <input id="tl-email" required type="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} />
+              <label htmlFor="tl-password">Password</label>
+              <input id="tl-password" required minLength={6} type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} placeholder="Enter your password" value={password} onChange={e => setPassword(e.target.value)} />
+              {message && <p className="tl-auth-message" role="status">{message}</p>}
+              <button className="tl-auth-submit" type="submit" disabled={busy}>{busy ? "Please wait..." : mode === "login" ? "Sign in to workspace" : "Create account"}<ArrowRight size={18} /></button>
+            </form>
+            <div className="tl-auth-switch">{mode === "login" ? "New to TruthLayer?" : "Already have an account?"} <button type="button" onClick={() => { setMode(mode === "login" ? "signup" : "login"); setMessage(""); }}>{mode === "login" ? "Create an account" : "Sign in"}</button></div>
+            <section className="tl-auth-demo tl-demo-v2" aria-label="Judge demo access">
+              <div className="tl-demo-kicker"><span className="tl-demo-kicker-dot" /> JUDGE ACCESS <span className="tl-demo-live">LIVE DEMO</span></div>
+              <div className="tl-demo-riri-row">
+                <div className="tl-demo-riri-model" aria-label="RiRi, the original animated 3D TruthLayer assistant">
+                  <HelpBuddy3D />
+                  <span className="tl-demo-riri-label">RiRi · Your guide</span>
+                </div>
+                <div className="tl-demo-speech">
+                  <span className="tl-demo-speech-speaker">A NOTE FROM RIRI</span>
+                  <p>Hi, judge! I'm RiRi. Your <strong>four real-world &amp; simulated cases</strong> are ready to explore. One click and you're in!</p>
+                </div>
+              </div>
+              <div className="tl-demo-statline" aria-label="Demo case summary">
+                <span><Check size={13} /> 3 reviewed</span>
+                <span><Activity size={13} /> 1 ongoing</span>
+                <span><ShieldCheck size={13} /> Separate demo data</span>
+              </div>
+              <div className="tl-demo-divider"><span>ONE-CLICK ACCESS · NO SIGNUP REQUIRED</span></div>
+              <div className="tl-demo-credentials">
+                <div><span className="tl-demo-field-label">EMAIL</span><strong>{DEMO_EMAIL}</strong></div>
+                <div><span className="tl-demo-field-label">PASSWORD</span><strong>{DEMO_PASSWORD}</strong></div>
+              </div>
+              <button type="button" className="tl-demo-enter" onClick={() => void enterDemo()} disabled={busy}>
+                <span>{busy ? "Opening demo workspace..." : "Enter judge demo"}</span><ArrowRight size={19} />
+              </button>
+              <p className="tl-demo-disclaimer">Shared demo account · Sample investigations only · Your personal workspace stays private</p>
+            </section>
+          </div>
+          <div className="tl-auth-form-footer"><ShieldCheck size={15} /> Authentication by Supabase · Your investigations are access-controlled</div>
+        </section>
+      </div>
+    </main>
+  );
 }
